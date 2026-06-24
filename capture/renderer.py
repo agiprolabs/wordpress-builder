@@ -1,3 +1,4 @@
+import json
 from capture.models import RenderedPage, ComputedStyleSnapshot
 
 ROLE_SELECTORS = {
@@ -43,6 +44,8 @@ def _default_page_factory():
     pw = sync_playwright().start()
     browser = pw.chromium.launch()
     page = browser.new_page(viewport={"width": 1280, "height": 900})
+    page._pw = pw
+    page._browser = browser
     return page
 
 class Renderer:
@@ -56,7 +59,6 @@ class Renderer:
         return self._page
 
     def render(self, url: str, slug: str) -> RenderedPage:
-        import json
         page = self._page_obj()
         page.goto(url)
         html = page.content()
@@ -66,3 +68,23 @@ class Renderer:
         computed = [ComputedStyleSnapshot(**s) for s in raw_styles]
         return RenderedPage(url=url, slug=slug, title=title, html=html,
                             computed=computed, assets=list(assets), screenshot_path=None)
+
+    def close(self):
+        page = self._page
+        if page is None:
+            return
+        browser = getattr(page, "_browser", None)
+        pw = getattr(page, "_pw", None)
+        if browser is not None:
+            try: browser.close()
+            except Exception: pass
+        if pw is not None:
+            try: pw.stop()
+            except Exception: pass
+        self._page = None
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        self.close()
