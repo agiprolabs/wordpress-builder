@@ -1,4 +1,4 @@
-import os, json
+import os
 import pytest
 pytestmark = pytest.mark.skipif(os.environ.get("RUN_INTEGRATION") != "1",
                                 reason="integration: needs network")
