@@ -23,3 +23,10 @@ def test_infers_gravity_forms_with_fields():
 
 def test_no_forms_no_plugins():
     assert infer_plugins([_p("home", "<p>nothing</p>")]) == []
+
+def test_same_form_on_multiple_pages_accumulates_slugs():
+    specs = infer_plugins([_p("get-started", FORM), _p("contact", FORM)])
+    assert len(specs) == 1
+    inst = specs[0].instances[0]
+    assert inst["id"] == "gform_1"
+    assert inst["pages"] == ["get-started", "contact"]

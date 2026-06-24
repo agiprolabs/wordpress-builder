@@ -16,9 +16,13 @@ def infer_plugins(pages) -> list:
     instances = []
     for p in pages:
         soup = BeautifulSoup(p.html, "lxml")
-        for form in soup.select('form[id^="gform_"], form.gform_wrapper, .gform_wrapper form, .gform_wrapper'):
+        for form in soup.select('form[id^="gform_"], form.gform_wrapper'):
             fid = form.get("id", "gform")
-            if not any(i["id"] == fid for i in instances):
+            existing = next((i for i in instances if i["id"] == fid), None)
+            if existing:
+                if p.slug not in existing["pages"]:
+                    existing["pages"].append(p.slug)
+            else:
                 instances.append({"id": fid, "pages": [p.slug], "fields": _form_fields(form)})
     if not instances:
         return []
