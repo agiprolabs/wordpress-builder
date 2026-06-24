@@ -21,3 +21,9 @@ failed_blueprint.json
 
 # OS
 .DS_Store
+.superpowers/
+
+# uv / build / pytest temp artifacts
+uv-*.lock
+*.whl
+pytest-of-*/
