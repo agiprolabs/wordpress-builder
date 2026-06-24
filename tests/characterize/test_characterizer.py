@@ -31,3 +31,14 @@ def test_failing_page_skipped(tmp_path: Path):
                            discover=lambda u, max_pages: ["https://x.com/"])
     idx = json.loads((out / "characterization.json").read_text())
     assert idx["pages"] == []   # the only page errored and was skipped
+
+def test_renderer_closed_even_if_present(tmp_path):
+    closed = []
+    page = RenderedPage(url="https://x.com/", slug="home", title="Home",
+                        html="<body><main><h1>Home</h1></main></body>", computed=[], assets=[])
+    class R:
+        def render(self, url, slug): return page
+        def close(self): closed.append(True)
+    run_characterize("https://x.com/", "siteclose", tmp_path, renderer=R(),
+                     discover=lambda u, max_pages: ["https://x.com/"])
+    assert closed == [True]
