@@ -66,7 +66,6 @@ def main(argv=None):
     try:
         from capture.installer import WPInstaller
         from capture.verify import verify_site
-        import json as _json
 
         WPInstaller().install(bundle)
         print(f"Installed bundle to local WordPress at http://localhost:8080/")
@@ -74,47 +73,48 @@ def main(argv=None):
         # Re-render each captured page from localhost and from the original URL,
         # then build fingerprint dicts for verify_site.
         renderer = Renderer()
-        orig_pages: dict = {}
-        cap_pages: dict = {}
-        orig_snaps: list = []
-        cap_snaps: list = []
+        try:
+            orig_pages: dict = {}
+            cap_pages: dict = {}
+            orig_snaps: list = []
+            cap_snaps: list = []
 
-        bp = BundlePaths(bundle)
-        man_data = _json.loads(bp.manifest.read_text())
-        from capture.models import Manifest
-        man = Manifest.from_dict(man_data)
+            bp = BundlePaths(bundle)
+            man_data = _json.loads(bp.manifest.read_text())
+            from capture.models import Manifest
+            man = Manifest.from_dict(man_data)
 
-        for meta in man.pages:
-            # Render the original live URL
-            try:
-                orig_rp = renderer.render(meta.url, meta.slug)
-                orig_pc = extract_content(orig_rp)
-                orig_pages[meta.slug] = orig_pc.fingerprint
-                orig_snaps.extend(orig_rp.computed)
-            except Exception as exc:
-                print(f"  [warn] could not render original {meta.url}: {exc}")
+            for meta in man.pages:
+                # Render the original live URL
+                try:
+                    orig_rp = renderer.render(meta.url, meta.slug)
+                    orig_pc = extract_content(orig_rp)
+                    orig_pages[meta.slug] = orig_pc.fingerprint
+                    orig_snaps.extend(orig_rp.computed)
+                except Exception as exc:
+                    print(f"  [warn] could not render original {meta.url}: {exc}")
 
-            # Render the captured localhost equivalent
-            local_url = f"http://localhost:8080/{meta.slug}/"
-            try:
-                cap_rp = renderer.render(local_url, meta.slug)
-                cap_pc = extract_content(cap_rp)
-                cap_pages[meta.slug] = cap_pc.fingerprint
-                cap_snaps.extend(cap_rp.computed)
-            except Exception as exc:
-                print(f"  [warn] could not render captured {local_url}: {exc}")
+                # Render the captured localhost equivalent
+                local_url = f"http://localhost:8080/{meta.slug}/"
+                try:
+                    cap_rp = renderer.render(local_url, meta.slug)
+                    cap_pc = extract_content(cap_rp)
+                    cap_pages[meta.slug] = cap_pc.fingerprint
+                    cap_snaps.extend(cap_rp.computed)
+                except Exception as exc:
+                    print(f"  [warn] could not render captured {local_url}: {exc}")
 
-        orig_tokens = derive_tokens(orig_snaps) if orig_snaps else derive_tokens([])
-        cap_tokens = derive_tokens(cap_snaps) if cap_snaps else derive_tokens([])
+            orig_tokens = derive_tokens(orig_snaps)
+            cap_tokens = derive_tokens(cap_snaps)
 
-        report = verify_site(orig_pages, cap_pages, orig_tokens, cap_tokens)
-        bp.report.write_text(_json.dumps(report.to_dict(), indent=2))
-        status = "PASSED" if report.passed else "FAILED"
-        print(f"Fidelity verification {status}. Report: {bp.report}")
-
-        close = getattr(renderer, "close", None)
-        if callable(close):
-            close()
+            report = verify_site(orig_pages, cap_pages, orig_tokens, cap_tokens)
+            bp.report.write_text(_json.dumps(report.to_dict(), indent=2))
+            status = "PASSED" if report.passed else "FAILED"
+            print(f"Fidelity verification {status}. Report: {bp.report}")
+        finally:
+            close = getattr(renderer, "close", None)
+            if callable(close):
+                close()
 
     except Exception as exc:
         print(f"Install/verify skipped (Docker may not be available): {exc}")
