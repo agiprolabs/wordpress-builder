@@ -7,7 +7,9 @@ from capture.content import blocks as wp
 _MAIN_SELECTORS = ["main", "#left-area", "#content-area", "#content", "article", ".entry-content"]
 _CHROME = ["header", "nav", "footer", "aside", "script", "style", "#header", "#sidebar"]
 
-# Maps neutral plugin slug → legacy WP placeholder name used in block_html / placeholders list
+# Legacy WP-placeholder slug: existing capture tests assert singular "gravity-form".
+# The neutral Block uses the canonical "gravity-forms". Remove this mapping once those
+# tests are updated to the canonical slug.
 _WP_PLUGIN_NAME = {
     "gravity-forms": "gravity-form",
 }
@@ -59,7 +61,7 @@ def _walk(node, out, seen_plugin):
         _walk(child, out, seen_plugin)
 
 
-def extract_blocks(page: RenderedPage) -> list:
+def extract_blocks(page: RenderedPage) -> list[Block]:
     soup = BeautifulSoup(page.html, "lxml")
     region = _main_region(soup)
     for sel in _CHROME:
@@ -73,8 +75,7 @@ def extract_blocks(page: RenderedPage) -> list:
 def fingerprint_blocks(blocks) -> str:
     parts = []
     for b in blocks:
-        d = b.to_frontmatter()
-        text = d.get("text", "") or " ".join(d.get("items", []) or [])
+        text = b.data.get("text", "") or " ".join(b.data.get("items", []) or [])
         text = re.sub(r"\s+", " ", text).strip().lower()
         parts.append(f"{b.type}:{text}")
     return hashlib.sha256("|".join(parts).encode("utf-8")).hexdigest()

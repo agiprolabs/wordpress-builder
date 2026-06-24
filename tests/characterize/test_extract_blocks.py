@@ -33,3 +33,10 @@ def test_wp_adapter_still_works():
     pc = extract_content(_page('<div id="left-area"><h2>Hi</h2><p>Body</p></div>'))
     assert "wp:heading" in pc.block_html and "wp:paragraph" in pc.block_html
     assert pc.fingerprint  # neutral-block fingerprint
+
+def test_fingerprint_sensitive_to_heading_and_list():
+    base = extract_blocks(_page("<main><h2>Title</h2><ul><li>A</li><li>B</li></ul></main>"))
+    diff_heading = extract_blocks(_page("<main><h2>Other</h2><ul><li>A</li><li>B</li></ul></main>"))
+    diff_list = extract_blocks(_page("<main><h2>Title</h2><ul><li>A</li><li>C</li></ul></main>"))
+    assert fingerprint_blocks(base) != fingerprint_blocks(diff_heading)
+    assert fingerprint_blocks(base) != fingerprint_blocks(diff_list)
