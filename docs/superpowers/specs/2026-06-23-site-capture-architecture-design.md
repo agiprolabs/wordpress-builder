@@ -1,7 +1,10 @@
 # Site Capture Architecture — Phase 1 Design Spec
 
 - **Date:** 2026-06-23
-- **Status:** Approved design, pre-implementation
+- **Status:** SUPERSEDED (2026-06-24) by `2026-06-24-characterize-rebuild-architecture-design.md`.
+  The linear "capture → WP install" framing was wrong: capture has two access-gated *source
+  adapters* (WP plugin vs crawl) converging on a **markdown site spec**, and WordPress install is
+  only one *rebuild target*. This doc's components are reclassified there (§7), not discarded.
 - **Scope:** Phase 1 (Capture). Phase 2 (theme-swap redesign + hand-off) is a separate spec.
 - **Validation fixture:** `armandgilbert.com` (the current reference clone).
 
