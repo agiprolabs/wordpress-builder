@@ -16,3 +16,9 @@ def test_writes_valid_theme_json_and_templates(tmp_path: Path):
     assert (tmp_path / "templates" / "page.html").exists()
     assert (tmp_path / "parts" / "header.html").exists()
     assert (tmp_path / "style.css").read_text().startswith("/*")
+    page_html = (tmp_path / "templates" / "page.html").read_text()
+    assert "wp:post-title" in page_html   # the block that fixes the dropped-title bug
+    assert "wp:post-content" in page_html
+    front_html = (tmp_path / "templates" / "front-page.html").read_text()
+    assert "wp:post-content" in front_html
+    assert "Theme Name:" in (tmp_path / "style.css").read_text()
