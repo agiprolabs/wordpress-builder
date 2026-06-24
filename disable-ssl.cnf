@@ -1,0 +1,15 @@
+[client]
+ssl=0
+skip-ssl
+skip-ssl-verify-server-cert
+
+[mysqlcheck]
+ssl=0
+skip-ssl
+skip-ssl-verify-server-cert
+
+[mariadb-check]
+ssl=0
+skip-ssl
+skip-ssl-verify-server-cert
+

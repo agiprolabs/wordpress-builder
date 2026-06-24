@@ -1,0 +1,23 @@
+# Built site exports / packages (large)
+dist/
+*.zip
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Working screenshots (root-level only; keep theme assets under custom-theme/)
+/*.png
+
+# Playwright + scratch / temp artifacts
+.playwright-mcp/
+scratch/
+*.log
+
+# Transient AI artifacts
+failed_blueprint.json
+
+# OS
+.DS_Store

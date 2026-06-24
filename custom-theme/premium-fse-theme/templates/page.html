@@ -1,0 +1,42 @@
+<!-- wp:template-part {"slug":"header","tagName":"div"} /-->
+<div id="content-full">
+    <div id="hr">
+        <div id="hr-center"></div>
+    </div>
+    <div class="center-highlight">
+        <div class="container">
+            <div id="content-area" class="clearfix">
+                <div id="left-area">
+                    <!-- wp:post-title {"level":1,"className":"title"} /-->
+                    <!-- wp:post-content {"layout":{"type":"constrained"}} /-->
+                </div>
+                <div id="sidebar">
+                    <!-- wp:group {"className":"widget"} -->
+                    <div class="wp-block-group widget">
+                        <!-- wp:search {"label":"Search","showLabel":true,"buttonText":"Search","buttonUseIcon":false} /-->
+                    </div>
+                    <!-- /wp:group -->
+                    
+                    <!-- wp:group {"className":"widget"} -->
+                    <div class="wp-block-group widget">
+                        <!-- wp:heading {"level":4} -->
+                        <h4 class="wp-block-heading">Recent Posts</h4>
+                        <!-- /wp:heading -->
+                        <!-- wp:latest-posts {"postsToShow":5,"displayPostDate":false} /-->
+                    </div>
+                    <!-- /wp:group -->
+
+                    <!-- wp:group {"className":"widget"} -->
+                    <div class="wp-block-group widget">
+                        <!-- wp:heading {"level":4} -->
+                        <h4 class="wp-block-heading">Recent Comments</h4>
+                        <!-- /wp:heading -->
+                        <!-- wp:latest-comments {"commentsToShow":5,"displayDate":false,"displayAvatar":false} /-->
+                    </div>
+                    <!-- /wp:group -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- wp:template-part {"slug":"footer","tagName":"div"} /-->
+</div>

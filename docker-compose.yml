@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: wp_mockup_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wordpress
+      MYSQL_PASSWORD: wordpresspassword
+      MYSQL_ROOT_PASSWORD: wordpresspassword
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - db_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+
+  wordpress:
+    image: wordpress:latest
+    container_name: wp_mockup_app
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpresspassword
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+    volumes:
+      - wp_data:/var/www/html
+    depends_on:
+      - db
+
+  wp-cli:
+    image: wordpress:cli
+    container_name: wp_mockup_cli
+    user: "33:33"
+    environment:
+      WORDPRESS_DB_HOST: db
+      WORDPRESS_DB_USER: wordpress
+      WORDPRESS_DB_PASSWORD: wordpresspassword
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME:-wordpress}
+    volumes:
+      - wp_data:/var/www/html
+      - ./disable-ssl.cnf:/etc/my.cnf.d/disable-ssl.cnf:ro
+    depends_on:
+      - db
+      - wordpress
+
+volumes:
+  db_data:
+  wp_data:

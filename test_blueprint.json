@@ -1,0 +1,6 @@
+{
+  "tagline": "San Diego's Trusted Roofing & Rain Gutter Experts",
+  "primary_color": "#1e293b",
+  "secondary_color": "#ea580c",
+  "home_content": "<!-- wp:cover {\"overlayColor\":\"primary\",\"minHeight\":620,\"minHeightUnit\":\"px\",\"style\":{\"color\":{\"background\":\"#1e293b\"}},\"className\":\"roof-rite-hero\"} -->\n<div class=\"wp-block-cover roof-rite-hero\" style=\"background-color:#1e293b;min-height:620px;\">\n  <div class=\"wp-block-cover__inner-container\">\n    <!-- wp:paragraph {\"align\":\"center\",\"style\":{\"typography\":{\"fontSize\":\"13px\",\"fontWeight\":\"700\",\"letterSpacing\":\"3px\",\"textTransform\":\"uppercase\"},\"color\":{\"text\":\"#ea580c\"}}} -->\n    <p class=\"has-text-align-center\" style=\"color:#ea580c;font-size:13px;font-weight:700;letter-spacing:3px;text-transform:uppercase;\">⭐⭐⭐⭐⭐ &nbsp;5-Star Rated Roofing Contractor — Vista, CA</p>\n    <!-- /wp:paragraph -->\n  </div>\n</div>\n<!-- /wp:cover -->"
+}
