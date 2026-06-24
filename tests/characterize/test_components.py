@@ -17,3 +17,9 @@ def test_skips_non_shared_region():
     pages = [_p("home", '<div id="sidebar">X</div><main>a</main>'),
              _p("about", "<main>b</main>")]  # no sidebar on about
     assert "sidebar" not in {c.name for c in detect_components(pages)}
+
+def test_skips_region_with_differing_text():
+    # header present on BOTH pages but with DIFFERENT content -> not a shared component
+    pages = [_p("home", '<div id="header">WELCOME HOME</div><main>a</main>'),
+             _p("about", '<div id="header">ABOUT US</div><main>b</main>')]
+    assert "header" not in {c.name for c in detect_components(pages)}

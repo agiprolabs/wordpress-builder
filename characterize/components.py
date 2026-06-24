@@ -8,7 +8,7 @@ def _region_text(html, sel):
     el = BeautifulSoup(html, "lxml").select_one(sel)
     return el.get_text(" ", strip=True) if el else None
 
-def detect_components(pages) -> list:
+def detect_components(pages) -> list[ComponentSpec]:
     out = []
     for name, sel in _REGIONS.items():
         texts = [_region_text(p.html, sel) for p in pages]
