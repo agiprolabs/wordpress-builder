@@ -1,0 +1,31 @@
+[project]
+name = "wordpress-builder"
+version = "0.1.0"
+requires-python = ">=3.12"
+dependencies = [
+    "playwright",
+    "beautifulsoup4",
+    "lxml",
+    "requests",
+    "anthropic",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.1.1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["capture"]
