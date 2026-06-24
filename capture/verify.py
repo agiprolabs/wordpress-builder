@@ -12,6 +12,7 @@ def color_distance(hex1: str, hex2: str) -> float:
     return ((r1 - r2) ** 2 + (g1 - g2) ** 2 + (b1 - b2) ** 2) ** 0.5
 
 def design_distance(orig: DesignTokens, cap: DesignTokens) -> dict:
+    """Orig-anchored: distance per palette role present in BOTH; roles only in `cap` are ignored."""
     out = {}
     for role, hexv in orig.palette.items():
         if role in cap.palette:
