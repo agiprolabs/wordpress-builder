@@ -28,3 +28,21 @@ def test_no_theme_wrappers_leak():
     pc = extract_content(_page(html))
     assert "left-area" not in pc.block_html
     assert "content-area" not in pc.block_html
+
+def test_paragraph_inside_list_not_doubled():
+    html = '<main><ul><li><p>Item one</p></li></ul></main>'
+    pc = extract_content(_page(html))
+    assert pc.block_html.count("Item one") == 1
+    assert "wp:list" in pc.block_html
+
+def test_deeply_nested_paragraph_emitted_once():
+    html = '<main><div><section><p>Deep text</p></section></div></main>'
+    pc = extract_content(_page(html))
+    assert pc.block_html.count("Deep text") == 1
+    assert "wp:paragraph" in pc.block_html
+
+def test_h5_h6_headings_captured():
+    html = '<main><h5>Five</h5><h6>Six</h6></main>'
+    pc = extract_content(_page(html))
+    assert '"level":5' in pc.block_html
+    assert '"level":6' in pc.block_html
