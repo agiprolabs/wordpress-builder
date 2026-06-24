@@ -35,3 +35,15 @@ def test_failing_page_is_recorded_not_fatal(tmp_path: Path):
     import json
     man = json.loads((tmp_path / "site2" / "manifest.json").read_text())
     assert man["pages"][0]["status"] == "error"
+
+def test_renderer_closed_after_run(tmp_path):
+    closed = []
+    class R:
+        def render(self, url, slug):
+            return RenderedPage(url=url, slug=slug, title="T",
+                                html="<main><p>x</p></main>", computed=[], assets=[])
+        def close(self):
+            closed.append(True)
+    run_capture("https://x.com/", "site_close", tmp_path,
+                renderer=R(), discover=lambda url, max_pages: ["https://x.com/"])
+    assert closed == [True]

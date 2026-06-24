@@ -28,6 +28,9 @@ def run_capture(url, slug, out_root, max_pages=50, *, renderer, discover, llm_cl
             metas.append(PageMeta(url=u, slug=pslug, title=rp.title, status="ok"))
         except Exception:
             metas.append(PageMeta(url=u, slug=pslug, title=pslug, status="error"))
+    close = getattr(renderer, "close", None)
+    if callable(close):
+        close()
     tokens = clean_tokens(derive_tokens(snaps), client=llm_client)
     front = metas[0].slug if metas else "home"
     manifest = Manifest(site_title=(pages[0].title if pages else slug),
@@ -39,6 +42,10 @@ def run_capture(url, slug, out_root, max_pages=50, *, renderer, discover, llm_cl
     for pc in pages:
         f = bp.pages / f"{pc.slug}.html"
         f.write_text(rewrite_urls(f.read_text(), mapping))
+    # also localize any source URLs embedded in the derived theme (e.g. CSS bg images)
+    for tf in bp.theme.rglob("*"):
+        if tf.is_file() and tf.suffix in (".css", ".json", ".html"):
+            tf.write_text(rewrite_urls(tf.read_text(), mapping))
     return FidelityReport(passed=False, content_ok=False,
                           page_results=[{"slug": m.slug, "status": m.status} for m in metas],
                           design_diff={})
