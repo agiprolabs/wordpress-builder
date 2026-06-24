@@ -9,6 +9,7 @@ from capture.design.llm import clean_tokens
 from capture.design.theme_writer import write_theme
 from capture.media import localize_media, rewrite_urls
 from capture.bundle import write_bundle, BundlePaths
+from capture.installer import WP_UPLOADS_URL
 
 def _slugify(url: str, index: int) -> str:
     path = urlparse(url).path.strip("/")
@@ -38,7 +39,7 @@ def run_capture(url, slug, out_root, max_pages=50, *, renderer, discover, llm_cl
     bdir = write_bundle(out_root, slug, pages, manifest, tokens)
     bp = BundlePaths(bdir)
     write_theme(tokens, bp.theme)
-    mapping = localize_media(all_assets, bp.media)
+    mapping = localize_media(all_assets, bp.media, url_prefix=WP_UPLOADS_URL)
     for pc in pages:
         f = bp.pages / f"{pc.slug}.html"
         f.write_text(rewrite_urls(f.read_text(), mapping))

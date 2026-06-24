@@ -4,6 +4,9 @@ from pathlib import Path
 from capture.bundle import BundlePaths
 from capture.models import Manifest
 
+WP_UPLOADS_DIR = "/var/www/html/wp-content/uploads/captured"
+WP_UPLOADS_URL = "/wp-content/uploads/captured"
+
 
 def _default_runner(args, input=None):
     # -T disables the pseudo-TTY so stdin piping works
@@ -35,9 +38,10 @@ class WPInstaller:
                    f"--title={man.site_title}", "--admin_user=admin",
                    # dev-only fixed credentials for the local mockup
                    "--admin_password=adminpassword", "--admin_email=admin@example.com"])
+        self._run(["rewrite", "structure", "/%postname%/"])
         self.copier(bp.theme, "/var/www/html/wp-content/themes/captured-theme")
         self._run(["theme", "activate", "captured-theme"])
-        self.copier(bp.media, "/var/www/html/wp-content/uploads/captured")
+        self.copier(bp.media, WP_UPLOADS_DIR)
         slug_to_id = {}
         for meta in man.pages:
             html = (bp.pages / f"{meta.slug}.html").read_text()
@@ -55,3 +59,4 @@ class WPInstaller:
             post_id = slug_to_id.get(meta.slug)
             if post_id:  # skip pages whose post create failed/returned no id
                 self._run(["menu", "item", "add-post", "Primary", post_id])
+        self._run(["rewrite", "flush", "--hard"])

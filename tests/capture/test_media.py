@@ -14,3 +14,10 @@ def test_localize_and_rewrite(tmp_path: Path):
     assert "https://x.com/missing.png" not in mapping
     html = '<img src="https://x.com/a.png">'
     assert local in rewrite_urls(html, mapping)
+
+def test_localize_with_install_url_prefix(tmp_path: Path):
+    def fake_dl(url): return b"X" if "a.png" in url else None
+    mapping = localize_media(["https://x.com/a.png"], tmp_path / "media",
+                             download=fake_dl, url_prefix="/wp-content/uploads/captured")
+    assert mapping["https://x.com/a.png"].startswith("/wp-content/uploads/captured/")
+    assert mapping["https://x.com/a.png"].endswith("a.png")

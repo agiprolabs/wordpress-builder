@@ -33,3 +33,5 @@ def test_install_sequences_wpcli_calls(tmp_path: Path):
     # content piped via stdin, NOT embedded in argv (ARG_MAX safety)
     assert all("--post_content" not in f for f in flat)
     assert "<p>hi</p>" in inputs
+    assert any("rewrite structure" in f for f in flat)
+    assert any("rewrite flush" in f for f in flat)

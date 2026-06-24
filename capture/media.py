@@ -12,7 +12,7 @@ def _default_download(url: str):
     r.raise_for_status()
     return r.content
 
-def localize_media(assets, media_dir, download=_default_download) -> dict:
+def localize_media(assets, media_dir, download=_default_download, url_prefix="media") -> dict:
     media_dir = Path(media_dir); media_dir.mkdir(parents=True, exist_ok=True)
     mapping: dict = {}
     for url in assets:
@@ -30,7 +30,7 @@ def localize_media(assets, media_dir, download=_default_download) -> dict:
         sha8 = hashlib.sha256(url.encode()).hexdigest()[:8]
         name = f"{sha8}-{base}"
         (media_dir / name).write_bytes(data)
-        mapping[url] = f"media/{name}"
+        mapping[url] = f"{url_prefix.rstrip('/')}/{name}"
     return mapping
 
 def rewrite_urls(text: str, mapping: dict) -> str:
