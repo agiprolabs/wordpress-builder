@@ -1,7 +1,8 @@
 from capture.design.tokens import derive_tokens
+from capture.models import ComputedStyleSnapshot
 from characterize.models import ThemeSpec
 
-def build_theme_spec(snapshots) -> ThemeSpec:
+def build_theme_spec(snapshots: list[ComputedStyleSnapshot]) -> ThemeSpec:
     t = derive_tokens(snapshots)
     typography = {}
     if "body" in t.fonts: typography["body"] = {"family": t.fonts["body"]}

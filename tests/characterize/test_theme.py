@@ -14,3 +14,9 @@ def test_build_theme_spec_from_snapshots():
     assert t.typography["heading"]["family"].startswith("Outfit")
     assert t.layout["container_width"] == "960px"
     assert isinstance(t.spacing_scale, list)
+
+def test_typography_omits_absent_heading():
+    snaps = [ComputedStyleSnapshot("body", "body", {"font-family": "Inter, sans-serif"})]
+    t = build_theme_spec(snaps)
+    assert "body" in t.typography
+    assert "heading" not in t.typography      # no h1 snapshot -> no heading role
