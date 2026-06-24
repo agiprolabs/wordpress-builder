@@ -16,3 +16,22 @@ def test_placeholder_block_is_flagged():
     out = blocks.placeholder_block("gravity-form")
     assert "CAPTURE-PLACEHOLDER: gravity-form" in out
     assert out.startswith("<!-- wp:html -->")
+
+def test_image_block_alt_and_close():
+    out = blocks.image_block("/x.png", "alt")
+    assert 'alt="alt"' in out
+    assert out.endswith("<!-- /wp:image -->")
+    # alt is HTML-escaped
+    assert 'alt="&lt;script&gt;"' in blocks.image_block("/x.png", "<script>")
+
+def test_list_block_unordered_ordered_escape_empty():
+    assert blocks.list_block(["a", "b"]) == (
+        '<!-- wp:list -->\n<ul><li>a</li><li>b</li></ul>\n<!-- /wp:list -->'
+    )
+    assert blocks.list_block(["a"], ordered=True) == (
+        '<!-- wp:list {"ordered":true} -->\n<ol><li>a</li></ol>\n<!-- /wp:list -->'
+    )
+    # items are HTML-escaped
+    assert "<li>&lt;b&gt;</li>" in blocks.list_block(["<b>"])
+    # empty list still produces a valid (empty) ul
+    assert "<ul></ul>" in blocks.list_block([])
