@@ -51,13 +51,73 @@ def run_capture(url, slug, out_root, max_pages=50, *, renderer, discover, llm_cl
                           design_diff={})
 
 def main(argv=None):
+    import json as _json
     argv = argv or sys.argv[1:]
     url = argv[0]
     slug = argv[1] if len(argv) > 1 else urlparse(url).netloc.replace(".", "-")
     from capture.renderer import Renderer
     from capture.discovery import discover_pages
-    rep = run_capture(url, slug, Path("capture-out"), renderer=Renderer(), discover=discover_pages)
+    out_root = Path("capture-out")
+    rep = run_capture(url, slug, out_root, renderer=Renderer(), discover=discover_pages)
     print(f"Captured {len(rep.page_results)} pages to capture-out/{slug}")
+
+    # --- install + verify (best-effort; skipped gracefully if Docker is unavailable) ---
+    bundle = out_root / slug
+    try:
+        from capture.installer import WPInstaller
+        from capture.verify import verify_site
+        import json as _json
+
+        WPInstaller().install(bundle)
+        print(f"Installed bundle to local WordPress at http://localhost:8080/")
+
+        # Re-render each captured page from localhost and from the original URL,
+        # then build fingerprint dicts for verify_site.
+        renderer = Renderer()
+        orig_pages: dict = {}
+        cap_pages: dict = {}
+        orig_snaps: list = []
+        cap_snaps: list = []
+
+        bp = BundlePaths(bundle)
+        man_data = _json.loads(bp.manifest.read_text())
+        from capture.models import Manifest
+        man = Manifest.from_dict(man_data)
+
+        for meta in man.pages:
+            # Render the original live URL
+            try:
+                orig_rp = renderer.render(meta.url, meta.slug)
+                orig_pc = extract_content(orig_rp)
+                orig_pages[meta.slug] = orig_pc.fingerprint
+                orig_snaps.extend(orig_rp.computed)
+            except Exception as exc:
+                print(f"  [warn] could not render original {meta.url}: {exc}")
+
+            # Render the captured localhost equivalent
+            local_url = f"http://localhost:8080/{meta.slug}/"
+            try:
+                cap_rp = renderer.render(local_url, meta.slug)
+                cap_pc = extract_content(cap_rp)
+                cap_pages[meta.slug] = cap_pc.fingerprint
+                cap_snaps.extend(cap_rp.computed)
+            except Exception as exc:
+                print(f"  [warn] could not render captured {local_url}: {exc}")
+
+        orig_tokens = derive_tokens(orig_snaps) if orig_snaps else derive_tokens([])
+        cap_tokens = derive_tokens(cap_snaps) if cap_snaps else derive_tokens([])
+
+        report = verify_site(orig_pages, cap_pages, orig_tokens, cap_tokens)
+        bp.report.write_text(_json.dumps(report.to_dict(), indent=2))
+        status = "PASSED" if report.passed else "FAILED"
+        print(f"Fidelity verification {status}. Report: {bp.report}")
+
+        close = getattr(renderer, "close", None)
+        if callable(close):
+            close()
+
+    except Exception as exc:
+        print(f"Install/verify skipped (Docker may not be available): {exc}")
 
 if __name__ == "__main__":
     main()
