@@ -9,7 +9,7 @@ def test_grid_with_header_main_sidebar_footer():
     html = ('<div id="header">H</div>'
             '<div id="content-area"><div id="left-area"><p>x</p></div><div id="sidebar">S</div></div>'
             '<div id="footer">F</div>')
-    g = build_grid_tree(_page(html))
+    g = build_grid_tree(_page(html), component_names={"header", "footer", "sidebar"})
     assert g.node == "container" and g.layout["flex-direction"] == "column"
     assert len(g.children) == 3
     kinds = [c.node for c in g.children]
@@ -24,3 +24,14 @@ def test_grid_without_sidebar_has_single_content():
     g = build_grid_tree(_page(html))
     row = [c for c in g.children if c.node == "container"][0]
     assert [c.node for c in row.children] == ["content"]
+
+def test_present_region_not_in_components_is_not_referenced():
+    # sidebar present on the page but NOT a detected shared component -> no dangling ref
+    html = '<div id="content-area"><div id="left-area"><p>x</p></div><div id="sidebar">S</div></div>'
+    g = build_grid_tree(_page(html), component_names=frozenset())  # nothing detected
+    refs = []
+    def walk(n):
+        if n.ref: refs.append(n.ref)
+        for c in (n.children or []): walk(c)
+    walk(g)
+    assert refs == []   # no component refs emitted when none detected

@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from characterize.models import ComponentSpec
 
-_REGIONS = {"header": "header, #header, .site-header", "footer": "footer, #footer",
+_REGIONS = {"header": "header, #header, .site-header", "footer": "footer, #footer, .site-footer",
             "sidebar": "#sidebar, aside"}
 
 def _region_text(html, sel):

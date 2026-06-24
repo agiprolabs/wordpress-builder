@@ -34,8 +34,11 @@ def run_characterize(url, slug, out_root, max_pages=50, *, renderer, discover,
             blocks = extract_blocks(rp)
             pages.append(PageSpec(url=u, slug=ps, title=rp.title, parent=None,
                                   template=("front-page" if i == 0 else "page"), status="published",
-                                  blocks=blocks, grid=build_grid_tree(rp), fingerprint=fingerprint_blocks(blocks)))
+                                  blocks=blocks, grid=None, fingerprint=fingerprint_blocks(blocks)))
         components = detect_components(rendered)
+        component_names = frozenset(c.name for c in components)
+        for rp, ps_spec in zip(rendered, pages):
+            ps_spec.grid = build_grid_tree(rp, component_names)
         plugins = infer_plugins(rendered)
         theme = build_theme_spec(snaps)
         domain = urlparse(url).netloc
