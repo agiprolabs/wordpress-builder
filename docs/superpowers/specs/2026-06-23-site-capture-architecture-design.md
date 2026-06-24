@@ -64,9 +64,17 @@ proved fidelity is achievable, but in a way that does **not generalize**:
 2. **Fidelity bar = auto-derived faithful theme.** Content 1:1 deterministic; design
    derived from computed styles (palette/fonts/spacing/layout), not hand-tuned.
 3. **Capture input = live site, headless render** (Playwright) for DOM + computed
-   styles + assets. (No static-HTML-only fallback in Phase 1.)
+   styles + assets — the general fallback path, usable on any site.
 4. **Extraction strategy = hybrid.** Content extraction is strictly deterministic and
    never passes through an LLM; the LLM/heuristics assist only the design layer.
+5. **Dual-path capture (rev. 2026-06-23).** When the source is WordPress and backend
+   access is available, a **source-side backend extractor** (WP-CLI / export plugin)
+   reads real `post_content`, the media library, menus, options, and other plugins'
+   data/tables/JSON — near-perfect content fidelity. Headless render (decision 3) is the
+   fallback when there is no backend access or the source is not WordPress. Both are
+   **Capture Source adapters** that emit the same Site Capture Bundle (§4). Design
+   derivation (computed styles → theme) is **shared** by both paths, since a classic
+   source theme has no `theme.json` to copy. See §12.
 
 ## 4. The Seam: Site Capture Bundle
 
@@ -226,3 +234,46 @@ sitemap/crawl ─▶ Renderer ─▶ {DOM, computed styles, screenshots, asset l
 - Page discovery details (sitemap vs crawl depth/limits) — resolved at planning time.
 - Exact design-closeness tolerances — calibrated against the fixture during implementation.
 - Phase 2 (theme-swap, hand-off, alternate-theme generation) — separate spec.
+
+## 12. Dual-Path Capture & the Source Adapter (rev. 2026-06-23)
+
+Capture is split behind one interface so the rest of the pipeline (Bundle, design
+derivation, installer, verifier) stays source-agnostic.
+
+**`CaptureSource` (interface):** `capture(target, work_dir) -> RawCapture`, where
+`RawCapture` carries: ordered pages (slug, title, raw content as WP blocks/HTML), media
+file list, menus, site options (title/tagline/front-page), and an optional `plugin_data`
+bag (other plugins' tables/options/JSON). Two implementations:
+
+1. **BackendExtractor (high fidelity; WP source + backend access).** Runs against the
+   source WordPress via WP-CLI over SSH or a small installable export plugin, reading:
+   - `wp_posts`/`wp_postmeta` → real `post_content` for pages/posts (verbatim blocks or
+     classic HTML — no DOM-scraping guesswork), drafts included if desired.
+   - `wp-content/uploads/` → the actual media library (+ attachment rows).
+   - nav menus, `wp_options` (title, tagline, front page, permalinks).
+   - **Other plugins' data** — e.g. Gravity Forms form definitions + entries, and any
+     plugin's custom tables / option blobs / JSON — preserved in `plugin_data` for
+     re-import, so the handoff includes working forms, not just placeholders.
+   With backend access, the §5.2 "form → flagged placeholder" limitation becomes
+   conditional: form *definitions* are captured for real; placeholders remain the fallback.
+
+2. **HeadlessRenderer (general fallback; any site, no backend access).** The §5.1–§5.2
+   path: Playwright render → deterministic DOM→block extraction. Used when the source is
+   not WordPress or no backend credentials exist.
+
+**Shared design layer.** Regardless of source, the **Design Deriver (§5.3)** runs a
+headless render of the source to extract computed styles → `theme.json` + templates,
+because a classic source theme (e.g. DeepFocus) has no `theme.json` to copy. If the
+source already IS an FSE theme, its `theme.json` is copied directly and derivation skipped.
+
+**Selection.** The orchestrator (§5.7) picks the source: `--source backend` (with
+credentials), `--source render`, or default `auto` (backend if credentials supplied, else
+render). Both converge on the same Bundle → same Installer → same Verifier.
+
+**Plan impact.** The headless path (current plan, Tasks 1–15) is unchanged — it becomes
+the `HeadlessRenderer` adapter. Added work (a Phase-1b plan, Tasks 16+): the
+`CaptureSource` interface + `RawCapture` model, the `BackendExtractor`, `plugin_data`
+capture + re-import in the Installer, and making the orchestrator source-agnostic.
+Validation: BackendExtractor is validated on a controlled WP instance we spin up and
+extract (the public fixture armandgilbert.com has no backend credentials); the
+HeadlessRenderer stays validated on armandgilbert.com.
