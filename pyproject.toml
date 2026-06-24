@@ -8,6 +8,7 @@ dependencies = [
     "lxml",
     "requests",
     "anthropic",
+    "pyyaml>=6.0.3",
 ]
 
 [tool.pytest.ini_options]
