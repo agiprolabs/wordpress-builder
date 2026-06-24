@@ -31,8 +31,19 @@ def test_model_is_pinned_and_content_never_sent():
     sent = json.dumps(fc.seen)
     assert "left-area" not in sent and "Get Started" not in sent  # no content leaked
     assert out.palette["background"] == "#fefefe"
+    # Prove ONLY design tokens are in the payload — no content, no `raw`
+    sent_payload = json.loads(fc.seen["messages"][0]["content"].split("Input:\n")[-1])
+    assert set(sent_payload.keys()) == {"palette", "fonts", "spacing"}
 
 def test_bad_json_returns_original():
     fc = FakeClient("not json")
     t = _tokens()
     assert clean_tokens(t, client=fc) == t
+
+def test_bad_fonts_or_spacing_type_preserves_original():
+    fc = FakeClient(json.dumps({"palette": {"background": "#fff"}, "fonts": None, "spacing": "nope"}))
+    t = _tokens()
+    out = clean_tokens(t, client=fc)
+    assert out.fonts == t.fonts          # None ignored, original kept
+    assert out.spacing == t.spacing      # non-list ignored, original kept
+    assert out.palette == {"background": "#fff"}  # valid palette applied

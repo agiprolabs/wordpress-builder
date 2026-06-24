@@ -24,9 +24,11 @@ def clean_tokens(tokens: DesignTokens, client=None) -> DesignTokens:
         data = json.loads(text)
         if not isinstance(data.get("palette"), dict):
             return tokens
+        fonts = data.get("fonts")
+        spacing = data.get("spacing")
         return replace(tokens,
-                       palette=data.get("palette", tokens.palette),
-                       fonts=data.get("fonts", tokens.fonts),
-                       spacing=data.get("spacing", tokens.spacing))
+                       palette=data["palette"],
+                       fonts=fonts if isinstance(fonts, dict) else tokens.fonts,
+                       spacing=spacing if isinstance(spacing, list) else tokens.spacing)
     except Exception:
         return tokens
