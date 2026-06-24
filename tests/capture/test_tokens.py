@@ -6,6 +6,12 @@ def test_rgb_to_hex():
     assert rgb_to_hex("rgb(255, 255, 255)") == "#ffffff"
     assert rgb_to_hex("rgb(152,108,4)") == "#986c04"
 
+def test_rgb_to_hex_edge_cases():
+    assert rgb_to_hex("rgba(152,108,4,0.5)") == "#986c04"   # alpha ignored
+    assert rgb_to_hex("") == ""
+    assert rgb_to_hex("transparent") == ""
+    assert rgb_to_hex("rgb(999,0,0)") == "#ff0000"          # clamped to 255
+
 def test_derive_palette_and_fonts():
     snaps = [
         ComputedStyleSnapshot("body", "body", {"background-color": "rgb(255,255,255)",

@@ -6,7 +6,7 @@ def rgb_to_hex(css: str) -> str:
     m = re.findall(r"\d+", css or "")
     if len(m) < 3:
         return ""
-    r, g, b = (int(m[0]), int(m[1]), int(m[2]))
+    r, g, b = (min(255, max(0, int(m[i]))) for i in (0, 1, 2))
     return "#%02x%02x%02x" % (r, g, b)
 
 def _px(val: str, default: int) -> int:
