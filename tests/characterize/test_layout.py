@@ -10,7 +10,8 @@ def test_grid_with_header_main_sidebar_footer():
             '<div id="content-area"><div id="left-area"><p>x</p></div><div id="sidebar">S</div></div>'
             '<div id="footer">F</div>')
     g = build_grid_tree(_page(html))
-    assert g.node == "container" and g.layout["direction"] == "column"
+    assert g.node == "container" and g.layout["flex-direction"] == "column"
+    assert len(g.children) == 3
     kinds = [c.node for c in g.children]
     assert kinds[0] == "component"          # header
     assert kinds[-1] == "component"          # footer

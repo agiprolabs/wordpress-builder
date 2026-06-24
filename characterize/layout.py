@@ -13,9 +13,9 @@ def build_grid_tree(page) -> GridNode:
                        children=[GridNode("content", blocks_ref="content.md", area="main"),
                                  GridNode("component", ref="components/sidebar.md", area="aside")])
     else:
-        row = GridNode("container", layout={"display": "block"},
+        row = GridNode("container", layout={"display": "grid", "columns": "1fr"},
                        children=[GridNode("content", blocks_ref="content.md", area="main")])
     children.append(row)
-    if soup.select_one("footer, #footer"):
+    if soup.select_one("footer, #footer, .site-footer"):
         children.append(GridNode("component", ref="components/footer.md"))
-    return GridNode("container", layout={"display": "flex", "direction": "column"}, children=children)
+    return GridNode("container", layout={"display": "flex", "flex-direction": "column"}, children=children)
