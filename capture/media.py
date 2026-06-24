@@ -1,7 +1,10 @@
 # capture/media.py
 import hashlib
+import logging
 from pathlib import Path
 from urllib.parse import urlparse
+
+_log = logging.getLogger(__name__)
 
 def _default_download(url: str):
     import requests
@@ -18,8 +21,10 @@ def localize_media(assets, media_dir, download=_default_download) -> dict:
         try:
             data = download(url)
             if not data:
+                _log.warning("media: skipping %s (empty/None download)", url)
                 continue
-        except Exception:
+        except Exception as e:
+            _log.warning("media: skipping %s (download failed: %s)", url, e)
             continue
         base = Path(urlparse(url).path).name or "asset"
         sha8 = hashlib.sha256(url.encode()).hexdigest()[:8]
