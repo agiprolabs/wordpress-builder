@@ -7,22 +7,24 @@ def _form_fields(form):
         if lab.get("for"):
             label_for[lab["for"]] = lab.get_text(" ", strip=True)
 
+    def prev_label_in_form(inp):
+        prev = inp.find_previous("label")
+        if prev is not None and prev.find_parent("form") is form:
+            return prev.get_text(" ", strip=True)
+        return None
+
     def plain_label(inp):
         if inp.get("id") and inp["id"] in label_for:
             return label_for[inp["id"]]
-        prev = inp.find_previous("label")
-        return prev.get_text(" ", strip=True) if prev else inp.get("name", "")
+        return prev_label_in_form(inp) or inp.get("name", "")
 
     def option_label(inp):
-        # explicit for/id wins
         if inp.get("id") and inp["id"] in label_for:
             return label_for[inp["id"]]
-        # the option's label is the next <label> BEFORE the next form control, within this form
         nxt = inp.find_next(["input", "textarea", "select", "label"])
         if nxt is not None and nxt.name == "label" and nxt.find_parent("form") is form:
             return nxt.get_text(" ", strip=True)
-        prev = inp.find_previous("label")
-        return prev.get_text(" ", strip=True) if prev else inp.get("name", "")
+        return prev_label_in_form(inp) or inp.get("name", "")
 
     fields = []
     group = None  # accumulates a checkbox/radio group keyed by (type, name)
@@ -38,8 +40,7 @@ def _form_fields(form):
             else:
                 if group:
                     group.pop("_key"); fields.append(group)
-                q = inp.find_previous("label")
-                question = q.get_text(" ", strip=True) if q else inp.get("name", "")
+                question = prev_label_in_form(inp) or inp.get("name", "")
                 group = {"_key": key, "label": question, "type": itype, "options": [option]}
             continue
         if group:

@@ -62,3 +62,15 @@ def test_option_labels_do_not_bleed_past_group():
     assert cb["label"] == "Colors"
     assert cb["options"] == ["Red", "Blue"]    # Message not absorbed as an option
     assert any(f["type"] == "textarea" and f["label"] == "Message" for f in fields)
+
+
+def test_label_does_not_bleed_across_forms():
+    # form 2's input has NO label of its own -> must NOT steal form 1's "Email" label
+    html = ('<form id="gform_1" class="gform_wrapper"><label>Email</label>'
+            '<input type="email" name="e"></form>'
+            '<form id="gform_2" class="gform_wrapper">'
+            '<input type="text" name="x"></form>')
+    specs = infer_plugins([_p("p", html)])
+    insts = {i["id"]: i for i in specs[0].instances}
+    f2 = insts["gform_2"]["fields"][0]
+    assert f2["label"] == "x"   # falls back to its own name, not form 1's "Email"
