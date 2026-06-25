@@ -21,7 +21,7 @@ def _slug(url, i):
     return p.replace("/", "-") or ("home" if _is_front_page(url) else f"page-{i}")
 
 def run_characterize(url, slug, out_root, max_pages=50, *, renderer, discover,
-                     llm_client=None, captured_at="") -> Path:
+                     llm_client=None, captured_at="", screenshot_dir=None) -> Path:
     urls = discover(url, max_pages=max_pages)
     rendered, pages, snaps = [], [], []
     try:
@@ -37,7 +37,8 @@ def run_characterize(url, slug, out_root, max_pages=50, *, renderer, discover,
             blocks = extract_blocks(rp)
             pages.append(PageSpec(url=u, slug=ps, title=rp.title, parent=None,
                                   template=("front-page" if _is_front_page(u) else "page"), status="published",
-                                  blocks=blocks, grid=None, fingerprint=fingerprint_blocks(blocks)))
+                                  blocks=blocks, grid=None, fingerprint=fingerprint_blocks(blocks),
+                                  screenshot_src=getattr(rp, "screenshot_path", None)))
         components = detect_components(rendered)
         component_names = frozenset(c.name for c in components)
         for rp, ps_spec in zip(rendered, pages):
@@ -64,7 +65,9 @@ def main(argv=None):
     slug = argv[1] if len(argv) > 1 else urlparse(url).netloc.replace(".", "-")
     from capture.renderer import Renderer
     from capture.discovery import discover_pages
-    out = run_characterize(url, slug, Path("characterization"), renderer=Renderer(), discover=discover_pages)
+    screenshot_dir = Path("characterization") / slug / "screenshots"
+    out = run_characterize(url, slug, Path("characterization"), renderer=Renderer(screenshot_dir=screenshot_dir),
+                           discover=discover_pages, screenshot_dir=screenshot_dir)
     print(f"Characterized to {out}")
 
 if __name__ == "__main__":

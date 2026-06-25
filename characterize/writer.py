@@ -1,4 +1,4 @@
-import json, yaml
+import json, shutil, yaml
 from pathlib import Path
 
 def _md(frontmatter: dict, title: str, body: str) -> str:
@@ -30,6 +30,9 @@ def write_characterization(sc, out_dir) -> Path:
         page_fm = {"url": p.url, "slug": p.slug, "title": p.title, "parent": p.parent,
                    "template": p.template, "status": p.status,
                    "content_ref": "content.md", "layout_ref": "layout.md"}
+        if getattr(p, "screenshot_src", None):
+            page_fm["screenshot"] = "screenshot.png"
+            shutil.copyfile(p.screenshot_src, pdir / "screenshot.png")
         (pdir / "page.md").write_text(_md(page_fm, p.title, f"Page: {p.title}."))
         content_fm = {"slug": p.slug, "content_fingerprint": p.fingerprint,
                       "blocks": [b.to_frontmatter() for b in p.blocks]}

@@ -48,6 +48,7 @@ class PageSpec:
     blocks: list = field(default_factory=list)
     grid: Optional[GridNode] = None
     fingerprint: str = ""
+    screenshot_src: Optional[str] = None   # absolute source path; copied by the writer, not serialized
     def to_dict(self):
         return {"url": self.url, "slug": self.slug, "title": self.title, "parent": self.parent,
                 "template": self.template, "status": self.status,
