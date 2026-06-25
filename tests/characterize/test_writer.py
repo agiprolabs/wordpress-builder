@@ -65,3 +65,9 @@ def test_screenshot_copied_and_referenced(tmp_path: Path):
     assert (out / "pages" / "home" / "screenshot.png").read_bytes() == b"PNG"
     pm = (out / "pages" / "home" / "page.md").read_text()
     assert "screenshot: screenshot.png" in pm
+
+def test_no_screenshot_page_has_no_ref(tmp_path: Path):
+    out = write_characterization(_sc(), tmp_path / "noshot")
+    pdir = out / "pages" / "get-started"
+    assert not (pdir / "screenshot.png").exists()
+    assert "screenshot:" not in (pdir / "page.md").read_text()

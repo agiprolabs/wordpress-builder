@@ -21,7 +21,7 @@ def _slug(url, i):
     return p.replace("/", "-") or ("home" if _is_front_page(url) else f"page-{i}")
 
 def run_characterize(url, slug, out_root, max_pages=50, *, renderer, discover,
-                     llm_client=None, captured_at="", screenshot_dir=None) -> Path:
+                     llm_client=None, captured_at="") -> Path:
     urls = discover(url, max_pages=max_pages)
     rendered, pages, snaps = [], [], []
     try:
@@ -67,7 +67,7 @@ def main(argv=None):
     from capture.discovery import discover_pages
     screenshot_dir = Path("characterization") / slug / "screenshots"
     out = run_characterize(url, slug, Path("characterization"), renderer=Renderer(screenshot_dir=screenshot_dir),
-                           discover=discover_pages, screenshot_dir=screenshot_dir)
+                           discover=discover_pages)
     print(f"Characterized to {out}")
 
 if __name__ == "__main__":
