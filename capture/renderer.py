@@ -1,4 +1,5 @@
 import json
+import os
 from capture.models import RenderedPage, ComputedStyleSnapshot
 
 ROLE_SELECTORS = {
@@ -68,7 +69,6 @@ class Renderer:
         assets = page.evaluate(_ASSET_JS)
         computed = [ComputedStyleSnapshot(**s) for s in raw_styles]
 
-        import os
         screenshot_path = None
         shot = getattr(page, "screenshot", None)
         if self._screenshot_dir and callable(shot):
