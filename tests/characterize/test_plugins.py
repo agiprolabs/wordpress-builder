@@ -30,3 +30,19 @@ def test_same_form_on_multiple_pages_accumulates_slugs():
     inst = specs[0].instances[0]
     assert inst["id"] == "gform_1"
     assert inst["pages"] == ["get-started", "contact"]
+
+GROUPED = ('<form id="gform_9" class="gform_wrapper">'
+           '<label for="i_name">Full Name</label><input id="i_name" type="text" name="name">'
+           '<label>Interests</label>'
+           '<input type="checkbox" name="interest[]" value="a"><label>Design</label>'
+           '<input type="checkbox" name="interest[]" value="b"><label>SEO</label>'
+           '</form>')
+
+def test_label_for_id_and_checkbox_grouping():
+    specs = infer_plugins([_p("contact", GROUPED)])
+    fields = specs[0].instances[0]["fields"]
+    name_field = [f for f in fields if f["type"] == "text"][0]
+    assert name_field["label"] == "Full Name"          # matched via for/id, not a stray label
+    cb = [f for f in fields if f["type"] == "checkbox"]
+    assert len(cb) == 1                                 # ONE grouped checkbox field, not 2
+    assert sorted(cb[0]["options"]) == ["Design", "SEO"]
