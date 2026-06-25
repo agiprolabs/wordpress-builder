@@ -93,3 +93,13 @@ class FidelityReport:
     def to_dict(self): return asdict(self)
     @classmethod
     def from_dict(cls, d): return cls(**d)
+
+
+@dataclass
+class Block:
+    type: str
+    data: dict = field(default_factory=dict)
+    def to_frontmatter(self): return {"type": self.type, **self.data}
+    @classmethod
+    def from_dict(cls, d):
+        d = dict(d); t = d.pop("type"); return cls(t, d)
