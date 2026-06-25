@@ -5,7 +5,8 @@ from capture.models import RenderedPage, PageContent, Block
 from capture.content import blocks as wp
 
 _MAIN_SELECTORS = ["main", "#left-area", "#content-area", "#content", "article", ".entry-content"]
-_CHROME = ["header", "nav", "footer", "aside", "script", "style", "#header", "#sidebar"]
+_CHROME = ["header", "nav", "footer", "aside", "script", "style", "#header", "#sidebar",
+           ".post-meta", ".entry-meta", ".posted-on", ".post-categories", ".entry-footer"]
 
 # Legacy WP-placeholder slug: existing capture tests assert singular "gravity-form".
 # The neutral Block uses the canonical "gravity-forms". Remove this mapping once those
@@ -40,9 +41,13 @@ def _walk(node, out, seen_plugin):
                 out.append(Block("plugin", {"plugin": "gravity-forms", "ref": "plugins/gravity-forms.md"}))
             continue
         if name in ("h1", "h2", "h3", "h4", "h5", "h6"):
-            t = child.get_text(" ", strip=True)
-            if t:
-                out.append(Block("heading", {"level": int(name[1]), "text": t}))
+            text = child.get_text(" ", strip=True)
+            if text:
+                lvl = int(name[1])
+                if out and out[-1].type == "heading" and out[-1].data.get("level") == lvl \
+                        and out[-1].data.get("text", "").strip().lower() == text.strip().lower():
+                    continue  # collapse consecutive identical heading
+                out.append(Block("heading", {"level": lvl, "text": text}))
             continue
         if name == "p":
             t = child.get_text(" ", strip=True)
