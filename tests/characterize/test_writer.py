@@ -52,3 +52,22 @@ def test_dashes_in_content_preserved_verbatim(tmp_path: Path):
     texts = [b.get("text") for b in fm["blocks"]]
     assert "intro --- more" in texts and "---" in texts    # verbatim in frontmatter
     assert "intro --- more" in content                      # verbatim in prose body
+
+def test_screenshot_copied_and_referenced(tmp_path: Path):
+    from characterize.models import (SiteCharacterization, SiteSpec, ThemeSpec, PageSpec, Block, GridNode)
+    src = tmp_path / "src.png"; src.write_bytes(b"PNG")
+    page = PageSpec("https://x.com/", "home", "Home", None, "front-page", "published",
+                    [Block("paragraph", {"text": "hi"})], GridNode("container"), "fp")
+    page.screenshot_src = str(src)
+    sc = SiteCharacterization(site=SiteSpec("x.com","X","","crawl","d",{},[],["home"],[]),
+                              theme=ThemeSpec(), pages=[page], components=[], plugins=[])
+    out = write_characterization(sc, tmp_path / "bundle")
+    assert (out / "pages" / "home" / "screenshot.png").read_bytes() == b"PNG"
+    pm = (out / "pages" / "home" / "page.md").read_text()
+    assert "screenshot: screenshot.png" in pm
+
+def test_no_screenshot_page_has_no_ref(tmp_path: Path):
+    out = write_characterization(_sc(), tmp_path / "noshot")
+    pdir = out / "pages" / "get-started"
+    assert not (pdir / "screenshot.png").exists()
+    assert "screenshot:" not in (pdir / "page.md").read_text()

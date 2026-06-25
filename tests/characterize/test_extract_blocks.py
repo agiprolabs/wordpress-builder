@@ -40,3 +40,24 @@ def test_fingerprint_sensitive_to_heading_and_list():
     diff_list = extract_blocks(_page("<main><h2>Title</h2><ul><li>A</li><li>C</li></ul></main>"))
     assert fingerprint_blocks(base) != fingerprint_blocks(diff_heading)
     assert fingerprint_blocks(base) != fingerprint_blocks(diff_list)
+
+def test_strips_post_meta_and_dedups_title():
+    html = ('<div id="left-area">'
+            '<h1 class="title">Get Started</h1>'
+            '<h1>Get Started</h1>'
+            '<p class="post-meta">Posted in News</p>'
+            '<p>Real intro copy.</p>'
+            '</div>')
+    blocks = extract_blocks(_page(html))
+    texts = [(b.type, b.data.get("text")) for b in blocks]
+    assert texts.count(("heading", "Get Started")) == 1   # duplicate title collapsed
+    assert ("paragraph", "Posted in News") not in texts    # post-meta stripped
+    assert ("paragraph", "Real intro copy.") in texts      # real content kept
+
+def test_non_adjacent_repeated_heading_preserved():
+    html = ('<div id="left-area">'
+            '<h2>Section</h2><p>body</p><h2>Section</h2>'
+            '</div>')
+    blocks = extract_blocks(_page(html))
+    texts = [b.data.get("text") for b in blocks if b.type == "heading"]
+    assert texts.count("Section") == 2   # non-adjacent duplicates are NOT collapsed
