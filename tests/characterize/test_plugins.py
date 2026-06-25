@@ -46,3 +46,19 @@ def test_label_for_id_and_checkbox_grouping():
     cb = [f for f in fields if f["type"] == "checkbox"]
     assert len(cb) == 1                                 # ONE grouped checkbox field, not 2
     assert sorted(cb[0]["options"]) == ["Design", "SEO"]
+    assert cb[0]["label"] == "Interests"
+
+
+def test_option_labels_do_not_bleed_past_group():
+    html = ('<form id="gform_7" class="gform_wrapper">'
+            '<label>Colors</label>'
+            '<input type="checkbox" name="c[]"><label>Red</label>'
+            '<input type="checkbox" name="c[]"><label>Blue</label>'
+            '<label for="msg">Message</label><textarea id="msg"></textarea>'
+            '</form>')
+    specs = infer_plugins([_p("p", html)])
+    fields = specs[0].instances[0]["fields"]
+    cb = [f for f in fields if f["type"] == "checkbox"][0]
+    assert cb["label"] == "Colors"
+    assert cb["options"] == ["Red", "Blue"]    # Message not absorbed as an option
+    assert any(f["type"] == "textarea" and f["label"] == "Message" for f in fields)
