@@ -13,9 +13,12 @@ from characterize.models import SiteCharacterization, SiteSpec, PageSpec
 
 _log = logging.getLogger(__name__)
 
+def _is_front_page(url) -> bool:
+    return urlparse(url).path.strip("/") == ""
+
 def _slug(url, i):
     p = urlparse(url).path.strip("/")
-    return p.replace("/", "-") or ("home" if i == 0 else f"page-{i}")
+    return p.replace("/", "-") or ("home" if _is_front_page(url) else f"page-{i}")
 
 def run_characterize(url, slug, out_root, max_pages=50, *, renderer, discover,
                      llm_client=None, captured_at="") -> Path:
@@ -33,7 +36,7 @@ def run_characterize(url, slug, out_root, max_pages=50, *, renderer, discover,
             snaps.extend(rp.computed)
             blocks = extract_blocks(rp)
             pages.append(PageSpec(url=u, slug=ps, title=rp.title, parent=None,
-                                  template=("front-page" if i == 0 else "page"), status="published",
+                                  template=("front-page" if _is_front_page(u) else "page"), status="published",
                                   blocks=blocks, grid=None, fingerprint=fingerprint_blocks(blocks)))
         components = detect_components(rendered)
         component_names = frozenset(c.name for c in components)

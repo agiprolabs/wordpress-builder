@@ -10,6 +10,9 @@ def _renderer(pages):
         def close(self): pass
     return R()
 
+def _renderer_for(pages):
+    return _renderer(pages)
+
 def test_run_characterize_emits_tree(tmp_path: Path):
     home = RenderedPage(url="https://x.com/", slug="home", title="Home",
         html="<body><div id='header'>H</div><main><h1>Home</h1><p>Welcome 760-632-8258</p></main></body>",
@@ -42,3 +45,16 @@ def test_renderer_closed_even_if_present(tmp_path):
     run_characterize("https://x.com/", "siteclose", tmp_path, renderer=R(),
                      discover=lambda u, max_pages: ["https://x.com/"])
     assert closed == [True]
+
+def test_front_page_is_homepage_not_first(tmp_path):
+    def mk(url, slug, body):
+        return RenderedPage(url=url, slug=slug, title=slug, html=f"<body><main>{body}</main></body>", computed=[], assets=[])
+    pages = {"https://x.com/about/": mk("https://x.com/about/", "about", "<p>a</p>"),
+             "https://x.com/": mk("https://x.com/", "home", "<p>h</p>")}
+    out = run_characterize("https://x.com/", "site", tmp_path,
+                           renderer=_renderer_for(pages),
+                           discover=lambda u, max_pages: ["https://x.com/about/", "https://x.com/"])
+    idx = json.loads((out / "characterization.json").read_text())
+    by_slug = {p["slug"]: p for p in idx["pages"]}
+    assert by_slug["home"]["template"] == "front-page"   # homepage, even though discovered 2nd
+    assert by_slug["about"]["template"] == "page"
