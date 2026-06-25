@@ -61,3 +61,17 @@ def test_close_without_render_is_noop():
     r = Renderer(page_factory=lambda: None)
     r.close()  # Should not raise
     assert r._page is None
+
+def test_render_writes_screenshot(tmp_path):
+    shots = []
+    class ShotPage(FakePage):
+        def screenshot(self, path=None, **kw): shots.append(path); open(path, "wb").write(b"PNG")
+    r = Renderer(page_factory=lambda: ShotPage(), screenshot_dir=str(tmp_path))
+    page = r.render("https://x.com/", slug="home")
+    assert page.screenshot_path == str(tmp_path / "home.png")
+    assert (tmp_path / "home.png").exists()
+
+def test_render_without_screenshot_dir_is_none():
+    r = Renderer(page_factory=lambda: FakePage())   # FakePage has no .screenshot
+    page = r.render("https://x.com/", slug="home")
+    assert page.screenshot_path is None

@@ -49,9 +49,10 @@ def _default_page_factory():
     return page
 
 class Renderer:
-    def __init__(self, page_factory=_default_page_factory):
+    def __init__(self, page_factory=_default_page_factory, screenshot_dir=None):
         self._page_factory = page_factory
         self._page = None
+        self._screenshot_dir = screenshot_dir
 
     def _page_obj(self):
         if self._page is None:
@@ -66,8 +67,20 @@ class Renderer:
         raw_styles = page.evaluate(_ROLE_JS % json.dumps(ROLE_SELECTORS))
         assets = page.evaluate(_ASSET_JS)
         computed = [ComputedStyleSnapshot(**s) for s in raw_styles]
+
+        import os
+        screenshot_path = None
+        shot = getattr(page, "screenshot", None)
+        if self._screenshot_dir and callable(shot):
+            os.makedirs(self._screenshot_dir, exist_ok=True)
+            screenshot_path = os.path.join(self._screenshot_dir, f"{slug}.png")
+            try:
+                shot(path=screenshot_path, full_page=True)
+            except Exception:
+                screenshot_path = None
+
         return RenderedPage(url=url, slug=slug, title=title, html=html,
-                            computed=computed, assets=list(assets), screenshot_path=None)
+                            computed=computed, assets=list(assets), screenshot_path=screenshot_path)
 
     def close(self):
         page = self._page
